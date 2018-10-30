@@ -19,6 +19,9 @@ data2plot <- data2plot[,3:5]
 
 data2map <- dplyr::filter(data, (grepl(paste(validyears,collapse = '|'),time) & grepl(paste(validcountries,collapse = '|'),geo) & unit == "CLV10_EUR_HAB"))
 data2map$time <- substring(data2map$time,1,4)
+data2map$country_code <- data2map$geo
+data2map[,3] <- label_eurostat(data2map[,3], fix_duplicated = TRUE)
+
 
 
 data2plot <- label_eurostat(data2plot, fix_duplicated = TRUE)

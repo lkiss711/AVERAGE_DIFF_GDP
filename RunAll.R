@@ -10,14 +10,18 @@ library("eurostat")
 library("tidyr")
 library("dplyr")
 
+# Sys.setenv("plotly_username"="lkiss711")
+# Sys.setenv("plotly_api_key"="*******")
+
+
 id <-  "sdg_08_10"
 
 data <- get_eurostat(id, time_format = "date")
 
 data$time = substring(data$time,0,4)
 
-# validcountries <- c("BE","BG","CZ","DK","DE","EE","IE","EL","ES","FR","HR","IT","CY","LV","LT","LU","HU","MT","NL","AT","PL","PT","RO","SI","SK","FI","SE","UK")
-validcountries <- c("CY","CZ","EE","HU","LV","LT","MT","PL","SI","SK")
+validcountries <- c("BE","BG","CZ","DK","DE","EE","IE","EL","ES","FR","HR","IT","CY","LV","LT","LU","HU","MT","NL","AT","PL","PT","RO","SI","SK","FI","SE","UK")
+#validcountries <- c("CY","CZ","EE","HU","LV","LT","MT","PL","SI","SK")
 validyears <- c("2005","2008","2011","2014","2017")
 
 data2plot <- dplyr::filter(data, (grepl(paste(validyears,collapse = '|'),time) & grepl(paste(validcountries,collapse = '|'),geo) & unit == "CLV10_EUR_HAB"))
@@ -183,6 +187,12 @@ p <- plot_ly(spread_data2plot, x = spread_data2plot$`2005`, y = spread_data2plot
 
 p
 
+# options(browser = 'false')
+# api_create(p, filename = "change-gdp-in-eu")
+
+
+
+
 newggslopegraph(data2plot,time,values,geo,
                 Title = "Changing GDP in EU",
                 SubTitle = "data source: Eurostat",
@@ -196,6 +206,9 @@ library("rgdal")
 library("RColorBrewer")
 library("maptools")
 library("eurostat")
+library("plotly")
+library("countrycode")
+
 
 colourCount = length(unique(team2004_geodata$CNTR_CODE))
 getPalette = colorRampPalette(brewer.pal(8, "Greens"))
@@ -238,3 +251,41 @@ m2 <- leaflet(team2004_geodata) %>%
 
 
 m2
+
+spread_data2map <- spread_data2map[,3:10]
+
+spread_data2map$hover <- with(spread_data2map, paste(spread_data2map$`geo`, '<br>', "2005", spread_data2map$`2005`,"<br>","2008", spread_data2map$`2008`, "<br>",
+                                                     "2011", spread_data2map$`2011`, "<br>","2014", spread_data2map$`2014`, "<br>",
+                                                     "2017", spread_data2map$`2017`, "<br>","Difference", spread_data2map$`DIFF`))
+
+spread_data2map$iso_code <- countrycode(spread_data2map[,1],"eurostat","iso3c")
+
+
+# common plot options
+g <- list(
+  scope = 'europe',
+  showframe = F,
+  showland = T,
+  landcolor = toRGB("grey90")
+)
+
+
+p_map <- spread_data2map %>%
+  plot_geo(
+    locationmode = 'eu countries'
+  ) %>%
+  add_trace(
+    z = spread_data2map$DIFF, text = spread_data2map$hover, locations = spread_data2map$iso_code,
+    color = spread_data2map$DIFF, colors = 'Greens'
+  ) %>%
+    colorbar(title = "Increase of GDP") %>%
+  layout(
+    title = 'Increase of GDP in EU between 2005 and 2017<br> 
+          Source: <a href="https://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&language=en&pcode=sdg_08_10&plugin=1">Eurostat</a>',
+    geo = g
+  )
+
+p_map
+
+# options(browser = 'false')
+# api_create(p_map, filename = "change-gdp-in-eu-map")
