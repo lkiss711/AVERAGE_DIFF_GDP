@@ -1,5 +1,8 @@
 library("eurostat")
 library("tidyr")
+library("dplyr")
+library("reshape2")
+library("imputeTS")
 
 id <-  "sdg_08_10"
 
@@ -7,8 +10,8 @@ data <- get_eurostat(id, time_format = "date")
 
 data$time = substring(data$time,0,4)
 
-validcountries <- c("BE","BG","CZ","DK","DE","EE","IE","EL","ES","FR","HR","IT","CY","LV","LT","LU","HU","MT","NL","AT","PL","PT","RO","SI","SK","FI","SE","UK")
-# validcountries <- c("CY","CZ","EE","HU","LV","LT","MT","PL","SI","SK")
+# validcountries <- c("BE","BG","CZ","DK","DE","EE","IE","EL","ES","FR","HR","IT","CY","LV","LT","LU","HU","MT","NL","AT","PL","PT","RO","SI","SK","FI","SE","UK")
+validcountries <- c("CY","CZ","EE","HU","LV","LT","MT","PL","SI","SK")
 validyears <- c("2005","2008","2011","2014","2017")
 
 data2plot <- dplyr::filter(data, (grepl(paste(validyears,collapse = '|'),time) & grepl(paste(validcountries,collapse = '|'),geo) & unit == "CLV10_EUR_HAB"))
@@ -38,5 +41,3 @@ geodata <- get_eurostat_geospatial(output_class = "spdf", resolution = "60", nut
 team2004_geodata <- subset(geodata,geodata$CNTR_CODE %in% validcountries)
 ref_matrix <- spread_data2map[,c("geo","REF")]
 team2004_geodata <- merge(team2004_geodata,ref_matrix, by.x = "id", by.y = "geo")
-
-

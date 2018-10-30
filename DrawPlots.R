@@ -1,7 +1,11 @@
 library("dplyr")
 library("ggplot2")
 library("ggthemes")
+library("CGPfunctions")
+library("plotly")
 
+
+theme_set(theme_bw())
 
 tufte_sort <- function(df, x="year", y="value", group="group", method="tufte", min.space=0.05) {
   ## First rename the columns for consistency
@@ -91,12 +95,41 @@ gg2 <- ggplot(spread_data2plot, aes(x=`geo`, y=REF, label=REF)) +
   scale_fill_manual(name="", 
                     labels = c("Above Average", "Below Average"), 
                     values = c("above"="#00ba38", "below"="#f8766d")) + 
-  labs(subtitle="source: EUROSTAT (sdg_08_10)\nChange of GDP between 2005 and 2017 in EU TEAM 2004", 
+  labs(subtitle="source: EUROSTAT (sdg_08_10)\nChange of GDP between 2005 and 2017 in EU", 
        title= "Difference from average increase of GDP") + 
-  geom_text() +
+  # geom_text() +
   coord_flip()
 
 
 gg2 <- gg2 + theme_economist_white() + scale_colour_economist() +labs(x=NULL, y=NULL)
 
 gg2
+
+spread_data2plot <- spread_data2plot[order(spread_data2plot$REF),]
+
+p <- plot_ly(spread_data2plot, x = spread_data2plot$`2005`, y = spread_data2plot$geo, 
+             name = "GDP in 2005", type = "scatter", mode = "markers",
+             marker = list(color = "green")) %>% 
+        add_trace(x = spread_data2plot$`2017`, y = ~spread_data2plot$geo, name = "GDP in 2017",type = 'scatter',
+              mode = "markers", marker = list(color = "blue")) %>% 
+        add_trace(x = spread_data2plot$`2008`, y = ~spread_data2plot$geo, name = "GDP in 2008",type = 'scatter',
+            mode = "markers", marker = list(color = "orange")) %>% 
+        add_trace(x = spread_data2plot$`2011`, y = ~spread_data2plot$geo, name = "GDP in 2011",type = 'scatter',
+            mode = "markers", marker = list(color = "black")) %>% 
+        add_trace(x = spread_data2plot$`2014`, y = ~spread_data2plot$geo, name = "GDP in 2014",type = 'scatter',
+            mode = "markers", marker = list(color = "yellow")) %>% 
+  
+                layout(
+                  title = "Change GDP in EU",
+                  xaxis = list(title = "GDP in EUR"),
+                  yaxis = list(title = ""),
+                  margin = list(l = 100)
+            ) 
+
+p
+
+newggslopegraph(data2plot,time,values,geo,
+                Title = "Changing GDP in EU",
+                SubTitle = "data source: Eurostat",
+                Caption = "")
+
